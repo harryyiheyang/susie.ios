@@ -33,7 +33,7 @@
 susie_ios_onestep <- function(z, R, n, L = 10, pip.threshold = 0.25, iter = 5, inner.iter = 3, score.test = F, pleiotropy.keep = "ALL", estimate_residual_variance = F) {
 
 if(pleiotropy.keep[1]=="ALL"){
-  pleiotropy.keep=c(1:length(z))
+pleiotropy.keep=c(1:length(z))
 }
 
 var.inf=0.5
@@ -43,6 +43,8 @@ fiteigen=matrixEigen(R)
 U=fiteigen$vector
 Gamma=fiteigen$values
 m=length(z)
+
+if(L>0){
 fit=susie_rss(z=z[pleiotropy.keep],R=R[pleiotropy.keep,pleiotropy.keep],n=n,L=L,estimate_residual_variance=estimate_residual_variance)
 beta[pleiotropy.keep]=coef(fit)[-1]*(fit$pip>=pip.threshold)*sqrt(n)
 indvalid=which(beta==0)
@@ -56,15 +58,15 @@ G[-c(1:m),1:m]=R[indpleiotropy,]
 g=G[1,]*0
 g[1:m]=1
 for(i in 1:iter){
- Hinv=matrixGeneralizedInverse(G+1/var.inf*diag(g))
- df=sum(diag(Hinv)[1:m])
- zeta=matrixVectorMultiply(Hinv,c(z,z[indpleiotropy]))
- alpha=zeta[1:m]
- for(j in 1:inner.iter){
-    Hinv=matrixGeneralizedInverse(G+1/var.inf*diag(g))
-    df=sum(diag(Hinv)[1:m])
-    var.inf=(sum(alpha^2)+df)/m
- }
+Hinv=matrixGeneralizedInverse(G+1/var.inf*diag(g))
+df=sum(diag(Hinv)[1:m])
+zeta=matrixVectorMultiply(Hinv,c(z,z[indpleiotropy]))
+alpha=zeta[1:m]
+for(j in 1:inner.iter){
+Hinv=matrixGeneralizedInverse(G+1/var.inf*diag(g))
+df=sum(diag(Hinv)[1:m])
+var.inf=(sum(alpha^2)+df)/m
+}
 }
 }
 
@@ -73,13 +75,26 @@ Hinv=matrixMultiply(U,t(U)*(1/(Gamma+1/var.inf)))
 for(i in 1:iter){
 alpha=c(matrixVectorMultiply(Hinv,z))
 for(j in 1:inner.iter){
-  Hinv=matrixMultiply(U,t(U)*(1/(Gamma+1/var.inf)))
-  df=sum(diag(Hinv))
-  var.inf=(sum(alpha^2)+df)/m
+Hinv=matrixMultiply(U,t(U)*(1/(Gamma+1/var.inf)))
+df=sum(diag(Hinv))
+var.inf=(sum(alpha^2)+df)/m
+}
 }
 }
 }
 
+if(L==0){
+beta=0*z
+Hinv=matrixMultiply(U,t(U)*(1/(Gamma+1/var.inf)))
+for(i in 1:iter){
+alpha=c(matrixVectorMultiply(Hinv,z))
+for(j in 1:inner.iter){
+Hinv=matrixMultiply(U,t(U)*(1/(Gamma+1/var.inf)))
+df=sum(diag(Hinv))
+var.inf=(sum(alpha^2)+df)/m
+}
+}
+}
 res=c(z-matrixVectorMultiply(R,beta))
 if(score.test==T){
 pv=inf_test(res.inf=res,LD=R,Theta=matrixInverse(R),A=R[,which(beta!=0)])
