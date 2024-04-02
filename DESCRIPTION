@@ -1,0 +1,17 @@
+Package: susie.ios
+Type: Package
+Title: SuSiE with Infinitesimal effect, Optimal variance estimation using REML, and Score test of variance estimate (susie.ios).
+Version: 0.1.0
+Author: Yihe Yang
+Maintainer: Yihe Yang <yxy1234@case.edu>
+Description: This package leverages the SuSiE (Sum of Single Effects) approach for fine-mapping to identify causal variants with significant effect sizes. It employs REML (Restricted Maximum Likelihood) for the estimation of infinitesimal effects and for determining the optimal variance of these effects. Additionally, the package utilizes a score test to assess whether the variance of the infinitesimal effect is zero, providing a comprehensive tool for genetic association studies.
+    The methodology implemented in this package is designed to enhance the precision of fine-mapping by selecting causal variants based on their effect sizes and by accurately estimating the underlying genetic architecture through REML. This approach facilitates a deeper understanding of the genetic basis of complex traits and diseases.
+License: MIT License
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.2.3
+Imports: 
+    CppMatrix,
+    susieR.nowarning,
+    Matrix
+    
