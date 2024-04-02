@@ -10,6 +10,7 @@
 #' @param iter Maximum number of iterations for the one-step estimation process, default is 15.
 #' @param inner.iter Number of iterations for the inner loop of the one-step estimation process, default is 5.
 #' @param score.test Perform score test of variance component or not, default to F.
+#' @param pleiotropy.keep The indices of variants to input for fine-mapping, default to "ALL".
 #' @param estimate_residual_variance Boolean flag to indicate whether to estimate the residual variance in the one-step process, default is FALSE.
 #' @return A list containing the following elements:
 #'   - \code{eta}: Linear predictor, which is the sum of the causal effect (\code{beta}) and the infinitesimal effect (\code{alpha}). It represents the total genetic effect of variants on the trait, combining the direct effects of causal variants and the background genetic effects.
@@ -29,50 +30,54 @@
 #'
 #' @details
 #' The function begins with the `susie_rss` method for fine-mapping based on the input Z scores, LD matrix, and sample size to identify causal variants. After identifying these variants, it utilizes a one-step process to estimate the infinitesimal effect based on the residuals. This process involves adjusting the estimation of the infinitesimal effect to account for the identified causal variants, thereby refining the overall genetic effect estimation. The inclusion of a one-step estimation process for the infinitesimal effect aims to enhance the precision and efficiency of genetic architecture estimation by directly incorporating the fine-mapping results into the infinitesimal effect estimation.
-susie_ios_onestep <- function(z, R, n, L = 10, pip.threshold = 0.25, iter = 5, inner.iter = 3, score.test = F,estimate_residual_variance = F) {
+susie_ios_onestep <- function(z, R, n, L = 10, pip.threshold = 0.25, iter = 5, inner.iter = 3, score.test = F, pleiotropy.keep = "ALL", estimate_residual_variance = F) {
+
+if(pleiotropy.keep[1]=="ALL"){
+  pleiotropy.keep=c(1:length(z))
+}
 
 var.inf=0.5
-alpha=z*0
+alpha=beta=z*0
 D=diag(R)
 fiteigen=matrixEigen(R)
 U=fiteigen$vector
 Gamma=fiteigen$values
 m=length(z)
-fit=susie_rss(z=z,R=R,n=n,L=L,estimate_residual_variance=estimate_residual_variance)
-beta=coef(fit)[-1]*(fit$pip>=pip.threshold)*sqrt(n)
+fit=susie_rss(z=z[pleiotropy.keep],R=R[pleiotropy.keep,pleiotropy.keep],n=n,L=L,estimate_residual_variance=estimate_residual_variance)
+beta[pleiotropy.keep]=coef(fit)[-1]*(fit$pip>=pip.threshold)*sqrt(n)
 indvalid=which(beta==0)
 indpleiotropy=which(beta!=0)
 
 if(length(indpleiotropy)>0){
-  G=bdiag(R,R[indpleiotropy,indpleiotropy])
-  G=as.matrix(G)
-  G[1:m,-c(1:m)]=R[,indpleiotropy]
-  G[-c(1:m),1:m]=R[indpleiotropy,]
-  g=G[1,]*0
-  g[1:m]=1
-  for(i in 1:iter){
-     Hinv=matrixGeneralizedInverse(G+1/var.inf*diag(g))
-     df=sum(diag(Hinv)[1:m])
-     zeta=matrixVectorMultiply(Hinv,c(z,z[indpleiotropy]))
-     alpha=zeta[1:m]
-     for(j in 1:inner.iter){
-        Hinv=matrixGeneralizedInverse(G+1/var.inf*diag(g))
-        df=sum(diag(Hinv)[1:m])
-        var.inf=(sum(alpha^2)+df)/m
-     }
-  }
+G=bdiag(R,R[indpleiotropy,indpleiotropy])
+G=as.matrix(G)
+G[1:m,-c(1:m)]=R[,indpleiotropy]
+G[-c(1:m),1:m]=R[indpleiotropy,]
+g=G[1,]*0
+g[1:m]=1
+for(i in 1:iter){
+ Hinv=matrixGeneralizedInverse(G+1/var.inf*diag(g))
+ df=sum(diag(Hinv)[1:m])
+ zeta=matrixVectorMultiply(Hinv,c(z,z[indpleiotropy]))
+ alpha=zeta[1:m]
+ for(j in 1:inner.iter){
+    Hinv=matrixGeneralizedInverse(G+1/var.inf*diag(g))
+    df=sum(diag(Hinv)[1:m])
+    var.inf=(sum(alpha^2)+df)/m
+ }
+}
 }
 
 if(length(indpleiotropy)==0){
+Hinv=matrixMultiply(U,t(U)*(1/(Gamma+1/var.inf)))
+for(i in 1:iter){
+alpha=c(matrixVectorMultiply(Hinv,z))
+for(j in 1:inner.iter){
   Hinv=matrixMultiply(U,t(U)*(1/(Gamma+1/var.inf)))
-  for(i in 1:iter){
-  alpha=c(matrixVectorMultiply(Hinv,z))
-    for(j in 1:inner.iter){
-      Hinv=matrixMultiply(U,t(U)*(1/(Gamma+1/var.inf)))
-      df=sum(diag(Hinv))
-      var.inf=(sum(alpha^2)+df)/m
-    }
-  }
+  df=sum(diag(Hinv))
+  var.inf=(sum(alpha^2)+df)/m
+}
+}
 }
 
 res=c(z-matrixVectorMultiply(R,beta))

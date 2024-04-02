@@ -14,6 +14,7 @@ susie_ios(
   max.eps = 0.001,
   inner.iter = 5,
   score.test = F,
+  pleiotropy.keep = "ALL",
   estimate_residual_variance = F
 )
 }
@@ -35,6 +36,8 @@ susie_ios(
 \item{inner.iter}{Number of iterations for the inner loop of the estimation process, default is 5.}
 
 \item{score.test}{Perform score test of variance component or not, default to F.}
+
+\item{pleiotropy.keep}{The indices of variants to input for fine-mapping, default to "ALL".}
 
 \item{estimate_residual_variance}{Boolean flag to indicate whether to estimate the residual variance, default is FALSE.}
 }

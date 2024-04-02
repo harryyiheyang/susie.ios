@@ -11,6 +11,7 @@
 #' @param max.eps The maximum epsilon for convergence in the iterative process, default is 0.001.
 #' @param inner.iter Number of iterations for the inner loop of the estimation process, default is 5.
 #' @param score.test Perform score test of variance component or not, default to F.
+#' @param pleiotropy.keep The indices of variants to input for fine-mapping, default to "ALL".
 #' @param estimate_residual_variance Boolean flag to indicate whether to estimate the residual variance, default is FALSE.
 #' @return A list containing the following elements:
 #'   - \code{eta}: Linear predictor, which is the sum of the causal effect (\code{beta}) and the infinitesimal effect (\code{alpha}). It represents the total genetic effect of variants on the trait, combining the direct effects of causal variants and the background genetic effects.
@@ -31,24 +32,32 @@
 #'
 #' @details
 #' The function starts by using the `susie_rss` function for fine-mapping based on the input Z scores, LD matrix, and sample size to identify causal variants. It then filters these variants based on the PIP threshold to calculate their effect sizes. For the estimation of infinitesimal effects, if the score test's p-value is below the specified threshold, an iterative process is used to estimate the optimal variance of these effects. If the p-value does not meet the threshold, the variance of the infinitesimal effect is set to zero. This approach aims to enhance the precision of fine-mapping by selecting causal variants based on their effect sizes and accurately estimating the underlying genetic architecture through REML. The inclusion of parameters for controlling the precision of the estimation process and the option to estimate residual variance allows for more flexibility and accuracy in the analysis.
-susie_ios <- function(z, R, n, L = 10, pip.threshold = 0.5, max.iter = 10, max.eps = 0.001, inner.iter = 5, score.test = F, estimate_residual_variance = F) {
+susie_ios <- function(z, R, n, L = 10, pip.threshold = 0.5, max.iter = 10, max.eps = 0.001, inner.iter = 5, score.test = F, pleiotropy.keep = "ALL" , estimate_residual_variance = F) {
+
+if(pleiotropy.keep[1]=="ALL"){
+pleiotropy.keep=c(1:length(z))
+}
+
 var.inf=0.5
-alpha=z*0
+alpha=beta=z*0
 D=diag(R)
 fiteigen=matrixEigen(R)
 U=fiteigen$vector
 Gamma=fiteigen$values
 m=length(z)
-fit=susie_rss(z=z,R=R,n=n,L=L,estimate_residual_variance=estimate_residual_variance)
-beta=coef(fit)[-1]*(fit$pip>=pip.threshold)*sqrt(n)
+
+fit=susie_rss(z=z[pleiotropy.keep],R=R[pleiotropy.keep,pleiotropy.keep],n=n,L=L,estimate_residual_variance=estimate_residual_variance)
+beta[pleiotropy.keep]=coef(fit)[-1]*(fit$pip>=pip.threshold)*sqrt(n)
 beta1=beta*0
 error=1
 iter=0
 
 while(error>max.eps&iter<max.iter){
 beta1=beta
-fit=susie_rss(z=c(z-matrixVectorMultiply(R,alpha)),R=R,n=n,L=L,estimate_residual_variance=estimate_residual_variance)
-beta=coef(fit)[-1]*(fit$pip>=pip.threshold)*sqrt(n)
+beta=beta*0
+s=c(z-matrixVectorMultiply(R,alpha))
+fit=susie_rss(z=s[pleiotropy.keep],R=R[pleiotropy.keep,pleiotropy.keep],n=n,L=L,estimate_residual_variance=estimate_residual_variance)
+beta[pleiotropy.keep]=coef(fit)[-1]*(fit$pip>=pip.threshold)*sqrt(n)
 indvalid=which(beta==0)
 indpleiotropy=which(beta!=0)
 

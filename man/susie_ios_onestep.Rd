@@ -13,6 +13,7 @@ susie_ios_onestep(
   iter = 5,
   inner.iter = 3,
   score.test = F,
+  pleiotropy.keep = "ALL",
   estimate_residual_variance = F
 )
 }
@@ -32,6 +33,8 @@ susie_ios_onestep(
 \item{inner.iter}{Number of iterations for the inner loop of the one-step estimation process, default is 5.}
 
 \item{score.test}{Perform score test of variance component or not, default to F.}
+
+\item{pleiotropy.keep}{The indices of variants to input for fine-mapping, default to "ALL".}
 
 \item{estimate_residual_variance}{Boolean flag to indicate whether to estimate the residual variance in the one-step process, default is FALSE.}
 }
