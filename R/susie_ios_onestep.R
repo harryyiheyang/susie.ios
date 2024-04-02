@@ -104,7 +104,7 @@ pv=inf_test(res.inf=res,LD=R,Theta=matrixInverse(R),A=R[,which(beta!=0)])
 }else{
 pv=1
 }
-pip=gamma*0
+pip=beta*0
 pip[pleiotropy.keep]=fit$pip
 return(list(eta=alpha+beta,beta=beta,alpha=alpha,df.eta=sum(diag(matrixMultiply(Hinv,G))),var.inf=var.inf,pv=pv,pip=pip,fit.susie=fit))
 }
