@@ -85,6 +85,7 @@ var.inf=(sum(alpha^2)+df)/m
 
 if(L==0){
 beta=0*z
+fit=list()
 Hinv=matrixMultiply(U,t(U)*(1/(Gamma+1/var.inf)))
 for(i in 1:iter){
 alpha=c(matrixVectorMultiply(Hinv,z))
