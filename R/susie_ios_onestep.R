@@ -44,12 +44,12 @@ U=fiteigen$vector
 Gamma=fiteigen$values
 m=length(z)
 pip=beta*0
-if(L>0){
-fit=susie_rss(z=z[pleiotropy.keep],R=R[pleiotropy.keep,pleiotropy.keep],n=n,L=L,estimate_residual_variance=estimate_residual_variance)
-beta[pleiotropy.keep]=coef(fit)[-1]*(fit$pip>=pip.threshold)*sqrt(n)
+fit=susie_rss(z=z[pleiotropy.keep],R=R[pleiotropy.keep,pleiotropy.keep],n=n,L=max(1,L),estimate_residual_variance=estimate_residual_variance)
+beta[pleiotropy.keep]=coef(fit)[-1]*(fit$pip>=pip.threshold)*sqrt(n)*(L!=0)
 indvalid=which(beta==0)
 indpleiotropy=which(beta!=0)
 pip[pleiotropy.keep]=fit$pip
+
 if(length(indpleiotropy)>0){
 G=bdiag(R,R[indpleiotropy,indpleiotropy])
 G=as.matrix(G)
@@ -82,22 +82,7 @@ var.inf=(sum(alpha^2)+df)/m
 }
 }
 }
-}
 
-if(L==0){
-G=LD
-beta=0*z
-fit=list()
-Hinv=matrixMultiply(U,t(U)*(1/(Gamma+1/var.inf)))
-for(i in 1:iter){
-alpha=c(matrixVectorMultiply(Hinv,z))
-for(j in 1:inner.iter){
-Hinv=matrixMultiply(U,t(U)*(1/(Gamma+1/var.inf)))
-df=sum(diag(Hinv))
-var.inf=(sum(alpha^2)+df)/m
-}
-}
-}
 res=c(z-matrixVectorMultiply(R,beta))
 if(score.test==T){
 pv=inf_test(res.inf=res,LD=R,Theta=matrixInverse(R),A=R[,which(beta!=0)])

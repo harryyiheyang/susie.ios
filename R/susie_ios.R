@@ -46,7 +46,7 @@ U=fiteigen$vector
 Gamma=fiteigen$values
 m=length(z)
 
-fit=susie_rss(z=z[pleiotropy.keep],R=R[pleiotropy.keep,pleiotropy.keep],n=n,L=L,estimate_residual_variance=estimate_residual_variance)
+fit=susie_rss(z=z[pleiotropy.keep],R=R[pleiotropy.keep,pleiotropy.keep],n=n,L=max(1,L),estimate_residual_variance=estimate_residual_variance)
 beta[pleiotropy.keep]=coef(fit)[-1]*(fit$pip>=pip.threshold)*sqrt(n)
 beta1=beta*0
 error=1
@@ -57,8 +57,8 @@ while(error>max.eps&iter<max.iter){
 beta1=beta
 beta=beta*0
 s=c(z-matrixVectorMultiply(R,alpha))
-fit=susie_rss(z=s[pleiotropy.keep],R=R[pleiotropy.keep,pleiotropy.keep],n=n,L=L,estimate_residual_variance=estimate_residual_variance)
-beta[pleiotropy.keep]=coef(fit)[-1]*(fit$pip>=pip.threshold)*sqrt(n)
+fit=susie_rss(z=s[pleiotropy.keep],R=R[pleiotropy.keep,pleiotropy.keep],n=n,L=max(1,L),estimate_residual_variance=estimate_residual_variance)
+beta[pleiotropy.keep]=coef(fit)[-1]*(fit$pip>=pip.threshold)*sqrt(n)*(L!=0)
 indvalid=which(beta==0)
 indpleiotropy=which(beta!=0)
 pip[pleiotropy.keep]=fit$pip
