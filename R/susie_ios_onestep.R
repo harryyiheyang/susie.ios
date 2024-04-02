@@ -71,6 +71,7 @@ var.inf=(sum(alpha^2)+df)/m
 }
 
 if(length(indpleiotropy)==0){
+G=LD
 Hinv=matrixMultiply(U,t(U)*(1/(Gamma+1/var.inf)))
 for(i in 1:iter){
 alpha=c(matrixVectorMultiply(Hinv,z))
@@ -84,6 +85,7 @@ var.inf=(sum(alpha^2)+df)/m
 }
 
 if(L==0){
+G=LD
 beta=0*z
 fit=list()
 Hinv=matrixMultiply(U,t(U)*(1/(Gamma+1/var.inf)))
@@ -102,5 +104,5 @@ pv=inf_test(res.inf=res,LD=R,Theta=matrixInverse(R),A=R[,which(beta!=0)])
 }else{
 pv=1
 }
-return(list(eta=alpha+beta,beta=beta,alpha=alpha,var.inf=var.inf,pv=pv,pip=fit$pip,fit.susie=fit))
+return(list(eta=alpha+beta,beta=beta,alpha=alpha,df.eta=sum(diag(matrixMultiply(Hinv,G))),var.inf=var.inf,pv=pv,pip=fit$pip,fit.susie=fit))
 }
