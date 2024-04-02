@@ -43,13 +43,13 @@ fiteigen=matrixEigen(R)
 U=fiteigen$vector
 Gamma=fiteigen$values
 m=length(z)
-
+pip=beta*0
 if(L>0){
 fit=susie_rss(z=z[pleiotropy.keep],R=R[pleiotropy.keep,pleiotropy.keep],n=n,L=L,estimate_residual_variance=estimate_residual_variance)
 beta[pleiotropy.keep]=coef(fit)[-1]*(fit$pip>=pip.threshold)*sqrt(n)
 indvalid=which(beta==0)
 indpleiotropy=which(beta!=0)
-
+pip[pleiotropy.keep]=fit$pip
 if(length(indpleiotropy)>0){
 G=bdiag(R,R[indpleiotropy,indpleiotropy])
 G=as.matrix(G)
@@ -104,7 +104,5 @@ pv=inf_test(res.inf=res,LD=R,Theta=matrixInverse(R),A=R[,which(beta!=0)])
 }else{
 pv=1
 }
-pip=beta*0
-pip[pleiotropy.keep]=fit$pip
 return(list(eta=alpha+beta,beta=beta,alpha=alpha,df.eta=sum(diag(matrixMultiply(Hinv,G))),var.inf=var.inf,pv=pv,pip=pip,fit.susie=fit))
 }

@@ -51,6 +51,7 @@ beta[pleiotropy.keep]=coef(fit)[-1]*(fit$pip>=pip.threshold)*sqrt(n)
 beta1=beta*0
 error=1
 iter=0
+pip=beta*0
 
 while(error>max.eps&iter<max.iter){
 beta1=beta
@@ -60,7 +61,7 @@ fit=susie_rss(z=s[pleiotropy.keep],R=R[pleiotropy.keep,pleiotropy.keep],n=n,L=L,
 beta[pleiotropy.keep]=coef(fit)[-1]*(fit$pip>=pip.threshold)*sqrt(n)
 indvalid=which(beta==0)
 indpleiotropy=which(beta!=0)
-
+pip[pleiotropy.keep]=fit$pip
 for(j in 1:inner.iter){
 if(length(indpleiotropy)>0){
 G=bdiag(R,R[indpleiotropy,indpleiotropy])
@@ -91,7 +92,5 @@ pv=inf_test(res.inf=res,LD=R,Theta=matrixInverse(R),A=R[,which(beta!=0)])
 }else{
 pv=1
 }
-pip=beta*0
-pip[pleiotropy.keep]=fit$pip
 return(list(eta=alpha+beta,beta=beta,alpha=alpha,var.inf=var.inf,pv=pv,pip=pip,fit.susie=fit))
 }
